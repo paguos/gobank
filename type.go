@@ -6,8 +6,8 @@ import (
 )
 
 type CreateAccountRequest struct {
-	FirstName  string `json:"firstName"`
-	SecondName string `json:"secondName"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 }
 
 type Account struct {
