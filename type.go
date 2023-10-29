@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+type CreateAccountRequest struct {
+	FirstName  string `json:"firstName"`
+	SecondName string `json:"secondName"`
+}
+
 type Account struct {
 	ID        int       `json:"id"`
 	FirstName string    `json:"firstName"`
