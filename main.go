@@ -8,6 +8,10 @@ func main() {
 		log.Fatal("Error connecting to the database:", err)
 	}
 
+	if err := store.Init(); err != nil {
+		log.Fatal("Error initializing the database:", err)
+	}
+
 	server := NewAPIServer(":3000", store)
 	server.Run()
 }
