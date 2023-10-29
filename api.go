@@ -9,6 +9,28 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type APIServer struct {
+	listenAddress string
+	storage       Storage
+}
+
+func NewAPIServer(listenAddress string, storage Storage) *APIServer {
+	return &APIServer{
+		listenAddress: listenAddress,
+		storage:       storage,
+	}
+}
+
+func (s *APIServer) Run() {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
+
+	log.Println("Go Bank API server running on port", s.listenAddress)
+
+	http.ListenAndServe(s.listenAddress, router)
+}
+
 func WriteJson(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -29,26 +51,6 @@ func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
 			WriteJson(w, http.StatusBadRequest, ApiError{Error: err.Error()})
 		}
 	}
-}
-
-type APIServer struct {
-	listenAddress string
-}
-
-func NewAPIServer(listenAddress string) *APIServer {
-	return &APIServer{
-		listenAddress: listenAddress,
-	}
-}
-
-func (s *APIServer) Run() {
-	router := mux.NewRouter()
-
-	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
-
-	log.Println("Go Bank API server running on port", s.listenAddress)
-
-	http.ListenAndServe(s.listenAddress, router)
 }
 
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {
