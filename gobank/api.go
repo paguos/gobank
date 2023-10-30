@@ -61,8 +61,6 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 		return s.handleGetAccount(w, r)
 	case "POST":
 		return s.handleCreateAccount(w, r)
-	case "DELETE":
-		return s.handleDeleteAccount(w, r)
 	default:
 		return fmt.Errorf("method not allowed %s", r.Method)
 	}
@@ -72,6 +70,8 @@ func (s *APIServer) handleAccountById(w http.ResponseWriter, r *http.Request) er
 	switch r.Method {
 	case "GET":
 		return s.handleGetAccountById(w, r)
+	case "DELETE":
+		return s.handleDeleteAccount(w, r)
 	default:
 		return fmt.Errorf("method not allowed %s", r.Method)
 	}
@@ -113,7 +113,15 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	id, err := findId(r)
+	if err != nil {
+		return err
+	}
+	err = s.storage.DeleteAccount(id)
+	if err != nil {
+		return err
+	}
+	return WriteJson(w, http.StatusNoContent, "")
 }
 
 func (s *APIServer) handleTransfer(w http.ResponseWriter, r *http.Request) error {
