@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -25,6 +26,7 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
+	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleAccountById))
 
 	log.Println("Go Bank API server running on port", s.listenAddress)
 
@@ -41,7 +43,7 @@ func WriteJson(w http.ResponseWriter, status int, v any) error {
 type apiFunc func(http.ResponseWriter, *http.Request) error
 
 type ApiError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
@@ -66,8 +68,25 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 	}
 }
 
+func (s *APIServer) handleAccountById(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case "GET":
+		return s.handleGetAccountById(w, r)
+	default:
+		return fmt.Errorf("method not allowed %s", r.Method)
+	}
+}
+
 func (s *APIServer) handleGetAccountById(w http.ResponseWriter, r *http.Request) error {
-	account := NewAccount("Pablo", "Osinaga")
+	id, err := findId(r)
+	if err != nil {
+		return err
+	}
+
+	account, err := s.storage.GetAccountById(id)
+	if err != nil {
+		return err
+	}
 	return WriteJson(w, http.StatusOK, account)
 }
 
@@ -99,4 +118,14 @@ func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) 
 
 func (s *APIServer) handleTransfer(w http.ResponseWriter, r *http.Request) error {
 	return nil
+}
+
+func findId(r *http.Request) (int, error) {
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return id, fmt.Errorf("Invalid %d id", id)
+	}
+
+	return id, nil
 }
